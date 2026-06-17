@@ -283,6 +283,11 @@
    COLE A URL DO SEU APPS SCRIPT AQUI (passo 3 do guia)
    =========================================================== */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDb7wiydNsfeKzMI2dJakifPrXwtKmStuiSRBjNRNfrg7Ead_G5beKOoAcMTpZZE9f/exec";
+
+/* Endereço público desta aplicação (GitHub Pages).
+   É o que o QR vai embutir para abrir direto pela câmera do celular.
+   Deixe "" para o QR usar automaticamente o endereço onde a página estiver. */
+const APP_URL = "https://deversonsafeseg.github.io/Safesegsistem/";
 /* =========================================================== */
 
 const tabs={scan:document.getElementById('t-scan'),gen:document.getElementById('t-gen')};
@@ -304,7 +309,10 @@ document.getElementById('btnGerar').onclick=()=>{
   const cpf=soDigitos(document.getElementById('cpfGerar').value);
   if(cpf.length!==11){toast('Informe um CPF com 11 dígitos.',true);return;}
   const holder=document.getElementById('qrCanvas');holder.innerHTML='';
-  new QRCode(holder,{text:cpf,width:210,height:210,correctLevel:QRCode.CorrectLevel.H,
+  /* monta o link que abre a aplicação já com o CPF */
+  const base=(APP_URL&&APP_URL.trim())?APP_URL.trim():(location.origin+location.pathname);
+  const link=base.replace(/\?.*$/,'').replace(/#.*$/,'')+'?cpf='+cpf;
+  new QRCode(holder,{text:link,width:210,height:210,correctLevel:QRCode.CorrectLevel.H,
     colorDark:"#1a1405",colorLight:"#ffffff"});
   document.getElementById('qrCpfLabel').textContent=document.getElementById('cpfGerar').value;
   document.getElementById('qrBox').classList.add('show');
@@ -395,6 +403,19 @@ let ac;function beep(f,d){try{ac=ac||new(window.AudioContext||window.webkitAudio
   const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type='sine';
   o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.07,ac.currentTime);o.start();
   g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d/1000);o.stop(ac.currentTime+d/1000);}catch(_){}}
+
+/* ABERTURA VIA QR: se a URL trouxer ?cpf=..., já busca automaticamente */
+(function(){
+  const params=new URLSearchParams(location.search);
+  const cpf=soDigitos(params.get('cpf')||'');
+  if(cpf.length===11){
+    abrir('scan');
+    document.getElementById('cpfManual').value=formataCpf(cpf);
+    buscar(cpf);
+    /* limpa o CPF da barra de endereço por privacidade, sem recarregar */
+    history.replaceState(null,'',location.pathname);
+  }
+})();
 </script>
 </body>
 </html>

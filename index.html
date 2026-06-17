@@ -395,6 +395,12 @@ function render(data,cpf){
         ${campo('Instrutor',c.instrutor)}${campo('Certificado nº',c.numero)}
       </div></div>`;});}
   box.innerHTML=html;beep(nX?220:880,nX?260:170);
+  if(document.body.classList.contains('modo-consulta')){
+    const b=document.createElement('button');
+    b.className='btn block';b.style.marginTop='6px';b.textContent='Nova consulta';
+    b.onclick=()=>{location.href=(APP_URL&&APP_URL.trim())?APP_URL.trim():location.pathname;};
+    box.appendChild(b);
+  }
 }
 
 let toastT;function toast(m,err){const t=document.getElementById('toast');
@@ -404,13 +410,20 @@ let ac;function beep(f,d){try{ac=ac||new(window.AudioContext||window.webkitAudio
   o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.07,ac.currentTime);o.start();
   g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d/1000);o.stop(ac.currentTime+d/1000);}catch(_){}}
 
-/* ABERTURA VIA QR: se a URL trouxer ?cpf=..., já busca automaticamente */
+/* ABERTURA VIA QR: se a URL trouxer ?cpf=..., já busca automaticamente
+   e entra em "modo consulta" — sem câmera, sem campo de busca, sem abas */
 (function(){
   const params=new URLSearchParams(location.search);
   const cpf=soDigitos(params.get('cpf')||'');
   if(cpf.length===11){
+    document.body.classList.add('modo-consulta');
     abrir('scan');
-    document.getElementById('cpfManual').value=formataCpf(cpf);
+    /* esconde o card de escanear (câmera + campo CPF) e a barra de abas */
+    const cardScan=document.querySelector('#p-scan .card');
+    if(cardScan) cardScan.style.display='none';
+    const barraAbas=document.querySelector('.tabs');
+    if(barraAbas) barraAbas.style.display='none';
+    pararCamera();
     buscar(cpf);
     /* limpa o CPF da barra de endereço por privacidade, sem recarregar */
     history.replaceState(null,'',location.pathname);

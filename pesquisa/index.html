@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSeg · Pesquisa de Satisfação</title>
+<style>
+  :root{
+    --amber:#f59e0b; --amber-d:#d97706; --amber-soft:#fef3c7;
+    --graphite:#1c1917; --graphite-2:#292524; --graphite-3:#44403c;
+    --emerald:#059669; --emerald-soft:#d1fae5;
+    --red:#dc2626; --paper:#fafaf9; --line:#e7e5e4; --muted:#78716c;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--paper);color:var(--graphite);
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:24px 18px 60px;min-height:100vh}
+
+  /* ---------- Header ---------- */
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .logo{
+    width:44px;height:44px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--amber),var(--amber-d));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:20px;
+    box-shadow:0 4px 12px rgba(245,158,11,.35);
+  }
+  .brand h1{font-size:18px;font-weight:800;letter-spacing:-.3px}
+  .brand small{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:22px;margin-top:18px;box-shadow:var(--shadow);
+  }
+  .step-tag{
+    display:inline-block;font-size:11px;font-weight:800;letter-spacing:1px;
+    color:var(--amber-d);text-transform:uppercase;margin-bottom:6px;
+  }
+  .q{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.2px}
+  .q-help{font-size:13px;color:var(--muted);margin-bottom:16px}
+
+  label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--graphite-3)}
+  input,select,textarea{
+    width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+    font-size:15px;font-family:inherit;background:#fff;color:var(--graphite);
+    transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);
+  }
+  textarea{resize:vertical;min-height:90px}
+  .field{margin-bottom:14px}
+
+  /* ---------- NPS scale ---------- */
+  .nps{display:grid;grid-template-columns:repeat(11,1fr);gap:5px;margin:6px 0 8px}
+  .nps button{
+    aspect-ratio:1;border:1.5px solid var(--line);background:#fff;border-radius:9px;
+    font-weight:800;font-size:14px;cursor:pointer;color:var(--graphite-3);
+    transition:all .12s;padding:0;
+  }
+  .nps button:hover{border-color:var(--amber);transform:translateY(-2px)}
+  .nps button.sel{color:#fff;border-color:transparent;transform:translateY(-2px)}
+  .nps button.sel.det{background:var(--red)}
+  .nps button.sel.pas{background:var(--amber)}
+  .nps button.sel.pro{background:var(--emerald)}
+  .nps-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:600}
+
+  /* ---------- Stars ---------- */
+  .star-row{margin-bottom:16px}
+  .star-row .lbl{font-size:14px;font-weight:700;margin-bottom:4px}
+  .stars{display:flex;gap:6px}
+  .stars span{
+    font-size:30px;cursor:pointer;color:#e7e5e4;line-height:1;
+    transition:transform .1s,color .1s;user-select:none;
+  }
+  .stars span:hover{transform:scale(1.15)}
+  .stars span.on{color:var(--amber)}
+
+  /* ---------- Choice buttons ---------- */
+  .choice-row{margin-bottom:18px}
+  .choice-row .lbl{font-size:14px;font-weight:700;margin-bottom:8px}
+  .choices{display:flex;flex-wrap:wrap;gap:8px}
+  .choices .choice{
+    flex:1 1 auto;min-width:fit-content;padding:10px 14px;border:1.5px solid var(--line);
+    background:#fff;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;
+    color:var(--graphite-3);transition:all .12s;
+  }
+  .choices .choice:hover{border-color:var(--amber);transform:translateY(-1px)}
+  .choices .choice.sel{background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:0 4px 10px rgba(245,158,11,.3)}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    width:100%;padding:15px;border:none;border-radius:13px;font-size:16px;font-weight:800;
+    cursor:pointer;transition:transform .12s,box-shadow .12s,opacity .12s;
+    background:linear-gradient(135deg,var(--graphite),var(--graphite-2));color:#fff;
+    box-shadow:0 6px 16px rgba(28,25,23,.25);letter-spacing:.2px;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(28,25,23,.3)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn.amber{background:linear-gradient(135deg,var(--amber),var(--amber-d));box-shadow:0 6px 16px rgba(245,158,11,.35)}
+  .btn.emerald{background:linear-gradient(135deg,var(--emerald),#047857);box-shadow:0 6px 16px rgba(5,150,105,.3)}
+  .btn.ghost{background:#fff;color:var(--graphite-3);border:1.5px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--graphite-3)}
+  .btn-sm{padding:10px 16px;font-size:13px;width:auto;border-radius:10px}
+
+  /* ---------- Thank you / routing ---------- */
+  .center{text-align:center;padding:30px 10px}
+  .big-emoji{font-size:60px;margin-bottom:10px}
+  .center h2{font-size:24px;font-weight:800;margin-bottom:8px;letter-spacing:-.5px}
+  .center p{color:var(--muted);font-size:15px;margin-bottom:20px;max-width:380px;margin-left:auto;margin-right:auto}
+
+  .hidden{display:none}
+  .err{color:var(--red);font-size:12px;font-weight:600;margin-top:4px}
+  .progress{height:5px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:20px}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber-d));transition:width .3s;border-radius:99px}
+
+  /* ---------- Admin ---------- */
+  .admin-bar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+  .stat .v{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+  .stat .k{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+  .stat.nps-box .v.pos{color:var(--emerald)}
+  .stat.nps-box .v.neg{color:var(--red)}
+  .tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:2px solid var(--line)}
+  .tabs button{background:none;border:none;padding:10px 14px;font-weight:700;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+  .tabs button.act{color:var(--graphite);border-bottom-color:var(--amber)}
+  .resp{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .resp .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+  .resp .name{font-weight:700;font-size:15px}
+  .resp .meta{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.5px}
+  .pill.pro{background:var(--emerald-soft);color:#047857}
+  .pill.pas{background:var(--amber-soft);color:var(--amber-d)}
+  .pill.det{background:#fee2e2;color:var(--red)}
+  .resp .quote{font-style:italic;color:var(--graphite-3);font-size:14px;border-left:3px solid var(--amber);padding-left:10px;margin-top:8px}
+  .resp .quote.melhoria{border-left-color:var(--graphite-3);color:var(--muted)}
+  .tagline{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .mintag{font-size:11px;font-weight:700;background:var(--paper);border:1px solid var(--line);color:var(--graphite-3);padding:3px 9px;border-radius:99px}
+  .resp .scores{font-size:12px;color:var(--muted);margin-top:6px}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
+  .testimonial-card{background:linear-gradient(135deg,#fff,var(--amber-soft));border:1px solid var(--amber);border-radius:16px;padding:18px;margin-bottom:12px}
+  .testimonial-card .stars-static{color:var(--amber);font-size:16px;letter-spacing:2px;margin-bottom:6px}
+  .testimonial-card .txt{font-size:15px;font-weight:500;margin-bottom:8px}
+  .testimonial-card .author{font-size:13px;font-weight:700;color:var(--graphite-3)}
+  .copy-hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .footer{text-align:center;font-size:11px;color:var(--muted);margin-top:30px;font-weight:600}
+  .admin-link{text-align:center;margin-top:28px}
+  .admin-link a{color:#d6d3d1;font-size:11px;text-decoration:none;letter-spacing:1px}
+  .admin-link a:hover{color:var(--amber)}
+  .admin-back{margin:4px 0 10px}
+  .admin-back a{color:var(--muted);font-size:12px;font-weight:600;text-decoration:none}
+  .admin-back a:hover{color:var(--amber)}
+  .config-note{background:var(--amber-soft);border:1px solid var(--amber);border-radius:12px;padding:12px;font-size:12px;color:var(--amber-d);margin-top:14px;font-weight:600}
+  .ok-note{background:var(--emerald-soft);border:1px solid var(--emerald);border-radius:12px;padding:12px;font-size:12px;color:#047857;margin-top:14px;font-weight:600;text-align:center}
+  .ok-note a{color:#047857;font-weight:800}
+
+  /* ---------- Config panel ---------- */
+  .cfg-note{font-size:13px;color:var(--muted);margin-bottom:14px;font-weight:600}
+  .cfg-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .cfg-title{font-size:15px;font-weight:800;margin-bottom:12px}
+  .cfg-items{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .cfg-item{display:flex;justify-content:space-between;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:600}
+  .cfg-del{background:none;border:none;color:var(--red);font-weight:800;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1}
+  .cfg-del:hover{background:#fee2e2}
+  .cfg-empty{font-size:13px;color:var(--muted);padding:8px 2px}
+  .cfg-add{display:flex;gap:8px}
+  .cfg-add input{flex:1}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* =========================================================
+   SafeSeg · Pesquisa de Satisfação de Treinamentos
+   Single-file. localStorage agora; Apps Script pronto p/ plugar.
+   Aluno: abrir normal.  Admin: adicionar ?admin=1 na URL.
+   ========================================================= */
+
+const STORE_KEY = 'safeseg_pesquisa_v1';
+
+// >>> CONFIGURE AQUI <<<
+const CONFIG = {
+  // Cole a URL do seu Web App do Apps Script para enviar à nuvem.
+  // Deixe vazio ('') para salvar só no aparelho (localStorage).
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwl9hEacxduUtq52GVYPhY0tc-0dfviwoiGEXUwaNiulZs4nSnX7JTuRz1CFYSaoi5a/exec',
+  // Link da sua página do Google (Avaliações). Ex.: https://g.page/r/XXXX/review
+  GOOGLE_REVIEW_URL: 'https://g.page/r/SUACHAVE/review',
+  WHATSAPP: '5546999203945',           // p/ feedback privado de notas baixas
+  // Treinamentos no dropdown (edite à vontade)
+  TREINAMENTOS: ['NR-35 Trabalho em Altura','NR-33 Espaço Confinado','NR-10 Eletricidade',
+    'NR-11 Movimentação de Cargas','NR-12 Máquinas','Brigada de Incêndio','CIPA / NR-05',
+    'Integração de Segurança','Outro'],
+  INSTRUTORES: ['Deverson','Outro instrutor']
+};
+
+const LISTS_KEY = 'safeseg_listas_v1';
+/* Listas editáveis pelo admin (treinamentos e instrutores).
+   Começam com o padrão do CONFIG; depois o admin gerencia pela aba Configurações. */
+function loadLists(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LISTS_KEY));
+    if(s && Array.isArray(s.treinamentos) && Array.isArray(s.instrutores)) return s;
+  }catch{}
+  return { treinamentos:[...CONFIG.TREINAMENTOS], instrutores:[...CONFIG.INSTRUTORES] };
+}
+function saveLists(l){ localStorage.setItem(LISTS_KEY, JSON.stringify(l)); }
+function getTreinamentos(){ return loadLists().treinamentos; }
+function getInstrutores(){ return loadLists().instrutores; }
+
+/* ---------- estado da resposta ---------- */
+let R = { nome:'', empresa:'', treinamento:'', instrutor:'', data:'',
+          nps:null, instrutor_n:0, conteudo_n:0, estrutura_n:0,
+          expectativa:'', aplicabilidade:'', ritmo:'', recomenda_tema:'',
+          comentario:'', melhoria:'', depoimento:'' };
+let stepIdx = 0;
+let adminTab = 'respostas';
+const STEPS = ['identificacao','nps','aspectos','percepcao','comentario'];
+
+/* ---------- util ---------- */
+const $ = s => document.querySelector(s);
+let app; // definido no boot, quando o DOM já existe
+const todayBR = () => new Date().toLocaleDateString('pt-BR');
+function load(){ try{return JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch{return[]} }
+function saveAll(a){ localStorage.setItem(STORE_KEY, JSON.stringify(a)); }
+function npsClass(n){ return n>=9?'pro':n>=7?'pas':'det'; }
+function npsLabel(n){ return n>=9?'Promotor':n>=7?'Neutro':'Detrator'; }
+
+/* ===========================================================
+   ROUTER  (arranque à prova de falhas)
+   =========================================================== */
+function boot(){
+  try{
+    app = document.getElementById('app');
+    const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
+    if(isAdmin){ initAdmin(); } else { R.data = todayBR(); renderStep(); }
+  }catch(e){
+    document.body.innerHTML =
+      '<div style="font-family:sans-serif;padding:24px;color:#1c1917">'+
+      '<h2 style="color:#dc2626">Algo travou ao iniciar</h2>'+
+      '<p style="color:#78716c">Tire um print desta mensagem e me envie:</p>'+
+      '<pre style="background:#fef3c7;padding:14px;border-radius:10px;white-space:pre-wrap;font-size:13px">'+
+      (e && e.message ? e.message : e)+'</pre></div>';
+  }
+}
+
+/* carrega respostas da nuvem (se configurada) antes de mostrar o painel */
+let adminData = null;   // cache das respostas exibidas no painel
+async function initAdmin(){
+  if(CONFIG.APPS_SCRIPT_URL){
+    app.innerHTML = `<div class="brand"><div class="logo">S</div><div><h1>SafeSeg · Admin</h1><small>Carregando respostas...</small></div></div><div class="empty">Buscando dados na nuvem ⏳</div>`;
+    try{
+      const r = await fetch(CONFIG.APPS_SCRIPT_URL);
+      const j = await r.json();
+      adminData = (j && j.respostas) ? j.respostas.map(normalizeRow) : [];
+    }catch(err){
+      adminData = null;   // null = falhou; cai pro localStorage
+    }
+  }
+  renderAdmin();
+}
+// converte números que vêm como texto da planilha
+function normalizeRow(o){
+  ['nps','instrutor_n','conteudo_n','estrutura_n'].forEach(k=>{ if(o[k]!=='' && o[k]!=null) o[k]=Number(o[k]); });
+  return o;
+}
+// fonte de dados do painel: nuvem se disponível, senão localStorage
+function adminSource(){ return adminData!==null ? adminData : load(); }
+// roda só depois que a página existir
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+}else{ boot(); }
+
+/* ===========================================================
+   FLUXO DO ALUNO
+   =========================================================== */
+function header(){
+  return `<div class="brand">
+    <div class="logo">S</div>
+    <div><h1>SafeSeg</h1><small>Pesquisa de Satisfação</small></div>
+  </div>`;
+}
+
+function renderStep(){
+  const pct = ((stepIdx)/STEPS.length)*100;
+  let body='';
+  const s = STEPS[stepIdx];
+
+  if(s==='identificacao'){
+    body = `
+    <div class="card">
+      <span class="step-tag">Antes de começar</span>
+      <div class="q">Conte pra gente quem é você 👋</div>
+      <div class="q-help">Leva cerca de 1 minuto. Sua opinião melhora os próximos treinamentos.</div>
+      <div class="field"><label>Seu nome <span style="color:var(--muted);font-weight:500">(opcional)</span></label><input id="nome" placeholder="Como prefere ser chamado(a)" value="${R.nome}"></div>
+      <div class="field"><label>Empresa <span style="color:var(--muted);font-weight:500">(opcional)</span></label><input id="empresa" placeholder="Onde você trabalha" value="${R.empresa}"></div>
+      <div class="field"><label>Qual treinamento você fez?</label>
+        <select id="treinamento">${opt(getTreinamentos(),R.treinamento)}</select></div>
+      <div class="field"><label>Instrutor</label>
+        <select id="instrutor">${opt(getInstrutores(),R.instrutor)}</select></div>
+      <button class="btn amber" onclick="next0()">Começar →</button>
+    </div>`;
+  }
+
+  if(s==='nps'){
+    body = `
+    <div class="card">
+      <span class="step-tag">Pergunta 1 de 4</span>
+      <div class="q">De 0 a 10, o quanto você indicaria a SafeSeg para um colega?</div>
+      <div class="q-help">0 = de jeito nenhum · 10 = com certeza</div>
+      <div class="nps" id="nps">${npsButtons()}</div>
+      <div class="nps-legend"><span>Não indicaria</span><span>Indicaria muito</span></div>
+      <div class="err hidden" id="npsErr">Toque em uma nota para continuar.</div>
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn ghost" onclick="back()">Voltar</button>
+        <button class="btn" onclick="next1()">Próximo →</button>
+      </div>
+    </div>`;
+  }
+
+  if(s==='aspectos'){
+    body = `
+    <div class="card">
+      <span class="step-tag">Pergunta 2 de 4</span>
+      <div class="q">Como você avalia cada ponto?</div>
+      <div class="q-help">Toque nas estrelas.</div>
+      ${starRow('Instrutor / didática','instrutor_n')}
+      ${starRow('Conteúdo / material','conteudo_n')}
+      ${starRow('Estrutura / organização','estrutura_n')}
+      <div class="err hidden" id="aspErr">Avalie os três pontos para continuar.</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn ghost" onclick="back()">Voltar</button>
+        <button class="btn" onclick="next2()">Próximo →</button>
+      </div>
+    </div>`;
+  }
+
+  if(s==='percepcao'){
+    body = `
+    <div class="card">
+      <span class="step-tag">Pergunta 3 de 4</span>
+      <div class="q">Sobre o que você levou do treinamento</div>
+      <div class="q-help">Toque na opção que mais combina com você.</div>
+      ${choiceRow('O treinamento atendeu suas expectativas?','expectativa',
+        ['Superou','Atendeu','Em parte','Não atendeu'])}
+      ${choiceRow('Você vai aplicar o que aprendeu no seu trabalho?','aplicabilidade',
+        ['Com certeza','Provavelmente','Talvez','Não'])}
+      ${choiceRow('O que achou do ritmo e da duração?','ritmo',
+        ['Ideal','Um pouco corrido','Um pouco longo'])}
+      <div class="err hidden" id="percErr">Responda as três para continuar.</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn ghost" onclick="back()">Voltar</button>
+        <button class="btn" onclick="next3()">Próximo →</button>
+      </div>
+    </div>`;
+  }
+
+  if(s==='comentario'){
+    body = `
+    <div class="card">
+      <span class="step-tag">Pergunta 4 de 4</span>
+      <div class="q">Conte um pouco mais 💬</div>
+      <div class="q-help">As duas são opcionais, mas ajudam muito.</div>
+      <div class="field"><label>O que mais marcou ou o que você mais gostou?</label>
+        <textarea id="comentario" placeholder="Ex.: a parte prática, o jeito do instrutor explicar...">${R.comentario}</textarea></div>
+      <div class="field"><label>O que poderia melhorar?</label>
+        <textarea id="melhoria" placeholder="Sugestões, o que faltou, o que mudaria...">${R.melhoria}</textarea></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" onclick="back()">Voltar</button>
+        <button class="btn emerald" onclick="finish()">Enviar resposta ✓</button>
+      </div>
+    </div>`;
+  }
+
+  app.innerHTML = header() +
+    `<div class="progress"><div style="width:${pct}%"></div></div>` + body +
+    (s==='identificacao' ? `<div class="admin-link"><a href="?admin=1">· painel ·</a></div>` : '');
+
+  // re-bind stars
+  if(s==='aspectos') bindStars();
+  if(s==='percepcao') bindChoices();
+  if(s==='nps') bindNps();
+}
+
+function opt(list,sel){ return `<option value="" ${sel?'':'selected'} disabled>Selecione...</option>` +
+  list.map(t=>`<option ${t===sel?'selected':''}>${t}</option>`).join(''); }
+
+function npsButtons(){
+  let h='';
+  for(let i=0;i<=10;i++){
+    const sel = R.nps===i ? 'sel '+npsClass(i) : '';
+    h+=`<button class="${sel}" data-n="${i}">${i}</button>`;
+  }
+  return h;
+}
+function bindNps(){
+  $('#nps').querySelectorAll('button').forEach(b=>{
+    b.onclick=()=>{ R.nps=+b.dataset.n; $('#nps').innerHTML=npsButtons(); bindNps(); $('#npsErr').classList.add('hidden'); };
+  });
+}
+
+function starRow(label,key){
+  return `<div class="star-row"><div class="lbl">${label}</div>
+    <div class="stars" data-key="${key}">${[1,2,3,4,5].map(i=>`<span data-v="${i}" class="${R[key]>=i?'on':''}">★</span>`).join('')}</div></div>`;
+}
+function bindStars(){
+  document.querySelectorAll('.stars').forEach(row=>{
+    const key=row.dataset.key;
+    row.querySelectorAll('span').forEach(st=>{
+      st.onclick=()=>{ R[key]=+st.dataset.v;
+        row.querySelectorAll('span').forEach(x=>x.classList.toggle('on',+x.dataset.v<=R[key]));
+        $('#aspErr').classList.add('hidden');
+      };
+    });
+  });
+}
+
+function choiceRow(label,key,options){
+  return `<div class="choice-row"><div class="lbl">${label}</div>
+    <div class="choices" data-key="${key}">${options.map(o=>
+      `<button type="button" class="choice ${R[key]===o?'sel':''}" data-v="${o}">${o}</button>`).join('')}</div></div>`;
+}
+function bindChoices(){
+  document.querySelectorAll('.choices').forEach(row=>{
+    const key=row.dataset.key;
+    row.querySelectorAll('button').forEach(b=>{
+      b.onclick=()=>{ R[key]=b.dataset.v;
+        row.querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x.dataset.v===R[key]));
+        $('#percErr').classList.add('hidden');
+      };
+    });
+  });
+}
+
+function next0(){
+  R.nome=$('#nome').value.trim();
+  R.empresa=$('#empresa').value.trim();
+  R.treinamento=$('#treinamento').value;
+  R.instrutor=$('#instrutor').value;
+  if(!R.treinamento){ alert('Por favor, selecione qual treinamento você fez.'); return; }
+  stepIdx=1; renderStep();
+}
+function next1(){ if(R.nps===null){ $('#npsErr').classList.remove('hidden'); return;} stepIdx=2; renderStep(); }
+function next2(){
+  if(!R.instrutor_n||!R.conteudo_n||!R.estrutura_n){ $('#aspErr').classList.remove('hidden'); return; }
+  stepIdx=3; renderStep();
+}
+function next3(){
+  if(!R.expectativa||!R.aplicabilidade||!R.ritmo){ $('#percErr').classList.remove('hidden'); return; }
+  stepIdx=4; renderStep();
+}
+function back(){
+  if(STEPS[stepIdx]==='comentario'){ R.comentario=$('#comentario').value; R.melhoria=$('#melhoria').value; }
+  stepIdx--; renderStep();
+}
+
+function finish(){
+  R.comentario=$('#comentario').value.trim();
+  R.melhoria=$('#melhoria').value.trim();
+  R.ts = Date.now();
+  R.id = 'r'+R.ts;
+  // salva local
+  const all=load(); all.push({...R}); saveAll(all);
+  // envia nuvem (se configurado)
+  sendToCloud({...R});
+  // roteamento por NPS
+  routeAfterSubmit();
+}
+
+/* ---------- review gating ---------- */
+function routeAfterSubmit(){
+  const n=R.nps;
+  if(n>=9){
+    // PROMOTOR -> pedir depoimento público (+ Google, se configurado)
+    app.innerHTML = header()+`
+      <div class="card center">
+        <div class="big-emoji">🎉</div>
+        <h2>Que alegria!</h2>
+        <p>Ficamos felizes que o treinamento fez a diferença. Quer deixar um depoimento rápido? Ele pode aparecer como referência para outros alunos.</p>
+        <div class="field" style="text-align:left">
+          <label>Seu depoimento (opcional)</label>
+          <textarea id="dep" placeholder="Ex.: Treinamento prático e direto ao ponto, o instrutor explicou tudo com clareza...">${R.comentario||''}</textarea>
+        </div>
+        <button class="btn emerald" onclick="saveDepoimento()">Salvar depoimento</button>
+        ${googleConfigured()? '<div style="height:10px"></div><button class="btn amber" onclick="goGoogle()">⭐ Avaliar no Google</button>':''}
+        <div style="height:10px"></div>
+        <button class="btn ghost" onclick="finalThanks()">Concluir</button>
+      </div>`;
+  } else if(n>=7){
+    // NEUTRO
+    app.innerHTML = header()+`
+      <div class="card center">
+        <div class="big-emoji">🙏</div>
+        <h2>Obrigado pela sua avaliação!</h2>
+        <p>Sua opinião nos ajuda a evoluir cada turma. Se tiver alguma sugestão extra, fale com a gente.</p>
+        <button class="btn amber" onclick="goWhats('Tenho uma sugestão sobre o treinamento')">Enviar sugestão no WhatsApp</button>
+        <div style="height:10px"></div>
+        <button class="btn ghost" onclick="finalThanks()">Concluir</button>
+      </div>`;
+  } else {
+    // DETRATOR -> canal privado, NÃO empurra review público
+    app.innerHTML = header()+`
+      <div class="card center">
+        <div class="big-emoji">🤝</div>
+        <h2>Obrigado pela sinceridade</h2>
+        <p>Sentimos muito que não atendemos sua expectativa. Queremos entender o que houve e corrigir. Pode falar diretamente com a gente?</p>
+        <button class="btn" onclick="goWhats('Quero dar um feedback sobre o treinamento que fiz')">Falar com a SafeSeg</button>
+        <div style="height:10px"></div>
+        <button class="btn ghost" onclick="finalThanks()">Concluir</button>
+      </div>`;
+  }
+}
+function googleConfigured(){
+  const u=CONFIG.GOOGLE_REVIEW_URL||'';
+  return u && !u.includes('SUACHAVE');
+}
+function saveDepoimento(){
+  R.depoimento=$('#dep').value.trim();
+  const all=load(); const i=all.findIndex(x=>x.id===R.id);
+  if(i>=0){ all[i].depoimento=R.depoimento; saveAll(all); }
+  sendToCloud({...R, _update:true});
+  if(googleConfigured()) goGoogle(); else finalThanks();
+}
+function goGoogle(){ window.open(CONFIG.GOOGLE_REVIEW_URL,'_blank'); finalThanks(); }
+function goWhats(msg){
+  window.open(`https://wa.me/${CONFIG.WHATSAPP}?text=${encodeURIComponent('[SafeSeg] '+msg+' — '+R.nome)}`,'_blank');
+  finalThanks();
+}
+function finalThanks(){
+  app.innerHTML = header()+`
+    <div class="card center">
+      <div class="big-emoji">✅</div>
+      <h2>Tudo certo!</h2>
+      <p>Resposta registrada. Obrigado por treinar com a SafeSeg — segurança é compromisso de todos.</p>
+    </div>
+    <div class="footer">SafeSeg Segurança do Trabalho · Dois Vizinhos/PR</div>`;
+}
+
+/* ---------- envio à nuvem (Apps Script) ---------- */
+function sendToCloud(payload){
+  if(!CONFIG.APPS_SCRIPT_URL) return;
+  fetch(CONFIG.APPS_SCRIPT_URL,{
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)
+  }).catch(()=>{});
+}
+
+/* ===========================================================
+   PAINEL ADMIN
+   =========================================================== */
+function renderAdmin(){
+  const data=adminSource();
+  const npsScore = calcNPS(data);
+  const avg = k => data.length ? (data.reduce((s,r)=>s+(r[k]||0),0)/data.length).toFixed(1) : '—';
+
+  const stats = `
+    <div class="stat-grid">
+      <div class="stat"><div class="v">${data.length}</div><div class="k">Respostas</div></div>
+      <div class="stat nps-box"><div class="v ${npsScore>=0?'pos':'neg'}">${data.length?npsScore:'—'}</div><div class="k">NPS</div></div>
+      <div class="stat"><div class="v">${avg('instrutor_n')}</div><div class="k">Instrutor ★</div></div>
+      <div class="stat"><div class="v">${avg('conteudo_n')}</div><div class="k">Conteúdo ★</div></div>
+      <div class="stat"><div class="v">${avg('estrutura_n')}</div><div class="k">Estrutura ★</div></div>
+    </div>`;
+
+  const bar = `
+    <div class="admin-bar">
+      <button class="btn amber btn-sm" onclick="exportCSV()">⬇ Exportar CSV</button>
+      <button class="btn ghost btn-sm" onclick="exportJSON()">⬇ JSON</button>
+      <button class="btn ghost btn-sm" onclick="copyTestimonials()">📋 Copiar depoimentos</button>
+      <button class="btn ghost btn-sm" onclick="wipe()">🗑 Limpar</button>
+    </div>`;
+
+  const tabs = `
+    <div class="tabs">
+      <button class="${adminTab==='respostas'?'act':''}" onclick="setTab('respostas')">Respostas</button>
+      <button class="${adminTab==='depoimentos'?'act':''}" onclick="setTab('depoimentos')">Prova social</button>
+      <button class="${adminTab==='config'?'act':''}" onclick="setTab('config')">Configurações</button>
+    </div>`;
+
+  let content='';
+  if(adminTab==='respostas'){
+    content = data.length ? [...data].reverse().map(r=>respCard(r)).join('') :
+      `<div class="empty">Nenhuma resposta ainda.<br>Compartilhe o QR Code com os alunos.</div>`;
+  } else if(adminTab==='depoimentos'){
+    const deps = data.filter(r=>r.nps>=9 && (r.depoimento||r.comentario));
+    content = deps.length ? deps.reverse().map(r=>testimonial(r)).join('') :
+      `<div class="empty">Ainda não há depoimentos de promotores.<br>Eles aparecem quando alunos com nota 9-10 deixam comentário.</div>`;
+  } else {
+    content = configPanel();
+  }
+
+  app.innerHTML = `
+    <div class="brand"><div class="logo">S</div><div><h1>SafeSeg · Admin</h1><small>Painel de resultados</small></div></div>
+    <div class="admin-back"><a href="?">← voltar para a pesquisa</a></div>
+    ${stats}${bar}${tabs}${content}
+    ${statusNote()}
+    <div class="footer">SafeSeg Segurança do Trabalho</div>`;
+}
+function statusNote(){
+  if(!CONFIG.APPS_SCRIPT_URL)
+    return `<div class="config-note">⚠ Modo local: as respostas estão salvas só neste aparelho. Para reunir as respostas de todos os alunos, configure o APPS_SCRIPT_URL no código.</div>`;
+  if(adminData===null)
+    return `<div class="config-note">⚠ Não consegui acessar a nuvem agora — mostrando o que está salvo neste aparelho. Verifique a internet e a URL do Apps Script.</div>`;
+  return `<div class="ok-note">☁ Conectado à nuvem · ${adminData.length} resposta(s) reunidas de todos os alunos. <a href="?admin=1">atualizar</a></div>`;
+}
+function setTab(t){ adminTab=t; renderAdmin(); }
+
+function configPanel(){
+  const L=loadLists();
+  const listBlock=(titulo,arr,tipo)=>`
+    <div class="cfg-card">
+      <div class="cfg-title">${titulo}</div>
+      <div class="cfg-items">
+        ${arr.length?arr.map((item,i)=>`
+          <div class="cfg-item">
+            <span>${esc(item)}</span>
+            <button class="cfg-del" onclick="removeItem('${tipo}',${i})" title="Remover">✕</button>
+          </div>`).join(''):'<div class="cfg-empty">Nenhum item ainda.</div>'}
+      </div>
+      <div class="cfg-add">
+        <input id="add-${tipo}" placeholder="Adicionar ${titulo.toLowerCase()}...">
+        <button class="btn amber btn-sm" onclick="addItem('${tipo}')">+ Adicionar</button>
+      </div>
+    </div>`;
+  return `
+    <div class="cfg-note">As mudanças aqui aparecem na hora no formulário do aluno. Ficam salvas neste navegador.</div>
+    ${listBlock('Treinamentos',L.treinamentos,'treinamentos')}
+    ${listBlock('Instrutores',L.instrutores,'instrutores')}`;
+}
+function addItem(tipo){
+  const inp=document.getElementById('add-'+tipo);
+  const val=(inp.value||'').trim();
+  if(!val) return;
+  const L=loadLists();
+  if(L[tipo].some(x=>x.toLowerCase()===val.toLowerCase())){ alert('Esse item já existe.'); return; }
+  L[tipo].push(val); saveLists(L); renderAdmin();
+}
+function removeItem(tipo,i){
+  const L=loadLists();
+  if(confirm('Remover "'+L[tipo][i]+'"?')){ L[tipo].splice(i,1); saveLists(L); renderAdmin(); }
+}
+
+function respCard(r){
+  const cls=npsClass(r.nps);
+  const tags=[r.expectativa,r.aplicabilidade&&'Aplica: '+r.aplicabilidade,r.ritmo].filter(Boolean);
+  return `<div class="resp">
+    <div class="top">
+      <div><div class="name">${esc(r.nome)||'<span style="color:#a8a29e">Anônimo</span>'}</div>
+        <div class="meta">${esc(r.treinamento)} · ${esc(r.instrutor||'—')} · ${esc(r.data||'')}${r.empresa?' · '+esc(r.empresa):''}</div></div>
+      <span class="pill ${cls}">NPS ${r.nps} · ${npsLabel(r.nps)}</span>
+    </div>
+    <div class="scores">Instrutor ${stars(r.instrutor_n)} · Conteúdo ${stars(r.conteudo_n)} · Estrutura ${stars(r.estrutura_n)}</div>
+    ${tags.length?`<div class="tagline">${tags.map(t=>`<span class="mintag">${esc(t)}</span>`).join('')}</div>`:''}
+    ${r.comentario?`<div class="quote">"${esc(r.comentario)}"</div>`:''}
+    ${r.melhoria?`<div class="quote melhoria">A melhorar: ${esc(r.melhoria)}</div>`:''}
+    ${r.depoimento && r.depoimento!==r.comentario?`<div class="quote">★ ${esc(r.depoimento)}</div>`:''}
+  </div>`;
+}
+function testimonial(r){
+  const txt = r.depoimento || r.comentario;
+  return `<div class="testimonial-card">
+    <div class="stars-static">${'★'.repeat(5)}</div>
+    <div class="txt">"${esc(txt)}"</div>
+    <div class="author">— ${esc(r.nome)||'Aluno SafeSeg'}${r.empresa?', '+esc(r.empresa):''} · ${esc(r.treinamento)}</div>
+  </div>`;
+}
+function stars(n){ return '★'.repeat(n)+'☆'.repeat(5-n); }
+function esc(s){ return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+/* ---------- NPS calc ---------- */
+function calcNPS(data){
+  if(!data.length) return 0;
+  const pro=data.filter(r=>r.nps>=9).length;
+  const det=data.filter(r=>r.nps<=6).length;
+  return Math.round((pro-det)/data.length*100);
+}
+
+/* ---------- exportações ---------- */
+function exportCSV(){
+  const data=adminSource(); if(!data.length){alert('Sem dados.');return;}
+  const cols=['data','nome','empresa','treinamento','instrutor','nps','classificacao','instrutor_n','conteudo_n','estrutura_n','expectativa','aplicabilidade','ritmo','comentario','melhoria','depoimento'];
+  const head=cols.join(';');
+  const rows=data.map(r=>[r.data,r.nome,r.empresa,r.treinamento,r.instrutor,r.nps,npsLabel(r.nps),
+    r.instrutor_n,r.conteudo_n,r.estrutura_n,r.expectativa,r.aplicabilidade,r.ritmo,r.comentario,r.melhoria,r.depoimento]
+    .map(v=>`"${(v??'').toString().replace(/"/g,'""')}"`).join(';'));
+  download('safeseg-pesquisa-'+new Date().toISOString().slice(0,10)+'.csv','\ufeff'+head+'\n'+rows.join('\n'),'text/csv');
+}
+function exportJSON(){
+  const data=adminSource(); if(!data.length){alert('Sem dados.');return;}
+  download('safeseg-pesquisa.json',JSON.stringify(data,null,2),'application/json');
+}
+function copyTestimonials(){
+  const data=adminSource().filter(r=>r.nps>=9 && (r.depoimento||r.comentario));
+  if(!data.length){alert('Sem depoimentos de promotores ainda.');return;}
+  const txt=data.map(r=>`★★★★★ "${r.depoimento||r.comentario}" — ${r.nome}${r.empresa?', '+r.empresa:''} (${r.treinamento})`).join('\n\n');
+  navigator.clipboard.writeText(txt).then(()=>alert('Depoimentos copiados! Cole no Instagram, site ou propostas.'));
+}
+function download(name,content,type){
+  const b=new Blob([content],{type});const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);
+}
+function wipe(){ if(confirm('Apagar TODAS as respostas deste aparelho? Exporte antes!')){ localStorage.removeItem(STORE_KEY); renderAdmin(); } }
+</script>
+</body>
+</html>
